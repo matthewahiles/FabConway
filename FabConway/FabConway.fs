@@ -9,55 +9,38 @@ open Xamarin.Forms
 module App =
 
     type Cell =
-      | Dead
-      | Alive
+        | Dead
+        | Alive
 
     type Model = 
-      { Generation: Cell[,] }
+        { Generation: Cell[,] }
 
     type Msg = 
-      | Step
-      | Flip of int * int
-      | Reset
+        | Step
+        | Flip of int * int
+        | Reset
 
-    let initModel = { Generation = array2D [
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-      [ Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead; Dead;];
-    ]}
+    let initModel = { Generation = Array2D.create 16 10 Dead }
 
     let calcNeighbors (gen: Cell[,]) x y v =
-      let maxY = gen.[0, *].Length - 1
-      let maxX = gen.[*, 0].Length - 1
-      let count = (seq {
-        for i in -1 .. 1 do
-          for j in -1 .. 1 do
-            let x' = x + i
-            let y' = y + j
-            if x' >= 0 && y' >= 0 && x' <= maxX && y' <= maxY && (i, j) <> (0, 0) then
-              match gen.[x', y'] with
-              | Alive -> yield 1
-              | Dead -> yield 0
-            else yield 0
-      } |> Seq.sum)
-      match (v, count) with
-      | (Alive, 2) -> Alive
-      | (Alive, 3) -> Alive
-      | (Dead, 3) -> Alive
-      | _ -> Dead
+        let maxY = gen.[0, *].Length - 1
+        let maxX = gen.[*, 0].Length - 1
+        let count = (seq {
+            for i in -1 .. 1 do
+                for j in -1 .. 1 do
+                    let x' = x + i
+                    let y' = y + j
+                    if x' >= 0 && y' >= 0 && x' <= maxX && y' <= maxY && (i, j) <> (0, 0) then
+                        match gen.[x', y'] with
+                        | Alive -> yield 1
+                        | Dead -> yield 0
+                    else yield 0
+        } |> Seq.sum)
+        match (v, count) with
+        | (Alive, 2) -> Alive
+        | (Alive, 3) -> Alive
+        | (Dead, 3) -> Alive
+        | _ -> Dead
 
     let evolveGen (gen: Cell[,]): Cell[,] =
         gen
@@ -65,12 +48,12 @@ module App =
         |> Array2D.mapi (calcNeighbors gen)
 
     let flipCell (grid: Cell[,]) x y: Cell[,] =
-      let newGen = Array2D.copy grid
-      Array2D.set newGen x y (
-        match grid.[x, y] with
-        | Alive -> Dead
-        | Dead -> Alive)
-      newGen
+        let newGen = Array2D.copy grid
+        Array2D.set newGen x y (
+            match grid.[x, y] with
+            | Alive -> Dead
+            | Dead -> Alive)
+        newGen
 
     let stepModel gen = { Generation = evolveGen gen }, Cmd.none
     let flipModel gen x y = { Generation = flipCell gen x y}, Cmd.none
@@ -105,11 +88,11 @@ module App =
                         gestureRecognizers= [
                           View.TapGestureRecognizer(command=(fun _ -> dispatch (Flip pos)))
                         ],
-                        color= (
+                        color=(
                             let (a, b) = pos
                             match model.Generation.[a, b] with
-                               | Alive -> Color.RoyalBlue
-                               | Dead -> Color.LightSlateGray)))
+                            | Alive -> Color.RoyalBlue
+                            | Dead -> Color.LightSlateGray)))
                  View.Button(text="Step", command=(fun _ -> dispatch Step))
                  View.Button(text="Reset", command=(fun _ -> dispatch Reset))
             ])
